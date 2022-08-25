@@ -8,18 +8,53 @@ import pytz
 from pytz import timezone
 import os
 from datetime import date
+import subprocess
+import config
+from configparser import ConfigParser
 
 today = date.today()
 now = datetime.now()
-current_time = now.strftime("%H:%M:%S")
+current_time = now.strftime("%H.%M.%S")
+current_datetime = now.strftime("%m-%d-%Y %H.%M.%S")
+
 desktop = os.path.join(os.path.expanduser("~"), "Desktop")
 downloads = os.path.join(os.path.expanduser("~"), "Downloads")
 
-imagesFilePath = os.path.join(downloads, "{} Export/images.csv".format(current_time))
-reelsFilePath = os.path.join(downloads, "{} Export/reels.csv".format(current_time))
-errorsFilePath = os.path.join(downloads, "{} Export/ErrorLog/errors.csv".format(current_time))
+exportFolderPath = os.path.join(downloads, "{} Export".format(current_datetime))
+errorFolderPath = os.path.join(downloads, "{} Export/ErrorLog".format(current_datetime))
 
+imagesFilePath = os.path.join(downloads, "{} Export/images.csv".format(current_datetime))
+reelsFilePath = os.path.join(downloads, "{} Export/reels.csv".format(current_datetime))
+errorsFilePath = os.path.join(downloads, "{} Export/ErrorLog/errors.csv".format(current_datetime))
+
+if not os.path.isdir(exportFolderPath):
+    os.makedirs(exportFolderPath)
+if not os.path.isdir(errorFolderPath):
+    os.makedirs(errorFolderPath)
+
+
+"""
+global config_file
+config_file = "Configs/config.ini"
+config = ConfigParser()
+config.read(config_file)
+configurations = config.sections()
+"""
+
+
+
+##### CONFIG PARAMETERS
 long_lived_user_token = "EAAHHfZCdfvGcBAN7mOuv5PRgKsb3gPzcoCDcyTY52XCBop49wodzKA2t7RHs3ftt0BMQUqoOZCePDTpEtTZCWx16qOBZCVgOdLf9tL9mZBjV1tlB0xnYzEVc3jKNWCnDBkDVDaaqVrW8R1wPZAKjbRafRcMIcAQW5JgSB9FtgWdQZDZD"
+igUsername = "totalnerd_"
+ig_user_id = "17841400068127870"
+
+
+
+
+limit = "50"
+
+
+
 
 long_lived_tn_page_access_token = "EAAHHfZCdfvGcBAPZAfgqui1JJAgjH7y1Aq74ZA2fGGXtZAKNO5YQpAqUOflYstc5ZBW64LzQjZAU8o3X1OzAmZBMtPMbgT9VlviIdZAaBFf0CSFyBDdyvg0z0yKrvP0HEYj5xT4lsqbhpzN2MWDIHtmpUDqOEGFf0zZCfZAUkIduR1Tz3AaBX05pN4"
 long_lived_wh_page_access_token = "EAAHHfZCdfvGcBAIiOpbe8K6yYNN7JZBxsLZAfkjrvpnPATdOePeojwjEwVCZA69BB9enwFRF3cuP4jtMum5VXNDIwZCK1PsLzhF29rG46zDqV7P83plYZCQtMhtCOqgnOUPevWr3zaZB6rfUv8nvZBL1gtHngEVogpPNkWpn1ih5yClPPQVRnJvC"
@@ -35,15 +70,39 @@ wh_ig_id = "17841405465779649"
 tn_ig_id = "17841400068127870"
 
 
-ig_user_id = "17841400068127870"
+
+
+
+def hashtagListFormat(hashtagList):
+    hashtagString = "".join(hashtagList)
+
+    hashtagsSplit = hashtagString.split("#")
+    newHashtagList = []
+
+    for word in hashtagsSplit:
+        if word == "":
+            pass
+        elif " " in word:
+            word = word[:-1]
+            word = "#" + word
+            newHashtagList.append(word)
+        else:
+            word = "#" + word
+            newHashtagList.append(word)
+            
+    return newHashtagList
+
+
+
+
 
 def pullData():
     
-    imageCSV_url = "/Users/davidwills/Dropbox/_New File Structure/Files/1) Coding/1) Projects/Python/Instagram Graph API/images.csv"
-    reelsCSV_url = "/Users/davidwills/Dropbox/_New File Structure/Files/1) Coding/1) Projects/Python/Instagram Graph API/reels.csv"
+    imageCSV_url = imagesFilePath
+    reelsCSV_url = reelsFilePath
 
-    imageCSV_header = ["Time Posted","Image URL","Instagram Post ","Caption","Media Type","Engagement","Followers","Impressions","Reach","Likes","Comments","Saves","Video Views", "LinkIn.bio", "Revenue", "Hashtags", "Hashtag Count"]
-    reelsCSV_header = ["Time Posted","Image URL","Instagram Post","Caption","Media Type","Reach", "Plays", "Total Interactions", "Likes","Comments","Saves","Shares", "Hashtags", "Hashtag Count"]
+    imageCSV_header = ["Media ID", "Time Posted","Image URL","Instagram Post ","Caption","Media Type","Engagement","Followers","Impressions","Reach","Likes","Comments","Saves","Video Views", "LinkIn.bio", "Revenue", "Hashtags", "Hashtag Count"]
+    reelsCSV_header = ["Media ID", "Time Posted","Image URL","Instagram Post","Caption","Media Type","Reach", "Plays", "Total Interactions", "Likes","Comments","Saves","Shares", "Hashtags", "Hashtag Count"]
 
     imageCSV = open(imageCSV_url, 'w', encoding='utf-8')
     reelsCSV = open(reelsCSV_url, 'w', encoding='utf-8')
@@ -56,7 +115,7 @@ def pullData():
 
 
 
-    errorsCSV_url = "/Users/davidwills/Dropbox/_New File Structure/Files/1) Coding/1) Projects/Python/Instagram Graph API/errors.csv"
+    errorsCSV_url = errorsFilePath
     errorsCSV = open(errorsCSV_url, 'w', encoding='utf-8')
     writerErrorsCSV = csv.writer(errorsCSV)
     errorsCSV_header = ["Message ID", "Info"]
@@ -70,7 +129,7 @@ def pullData():
     id_url = "https://graph.facebook.com/v14.0/{}/media".format(ig_user_id)
     id_payload = {
         "access_token": long_lived_user_token,
-        "limit": "10"
+        "limit": limit
         }
 
     r = requests.get(id_url, id_payload)
@@ -110,56 +169,69 @@ def pullData():
 
             #HASHTAGS
 
+
             hashtags = ""
-            hashtagCount = ""
-            print(int(comments))
+            hashtagCount = 0
+            hashtagList = []
 
 
 
+
+
+            
             ####### PULL HASHTAGS + COUNT FROM CAPTION
+            
 
             if "#" in caption:
                 captionWords = caption.split()
-                hashtagList = []
-                n = 0
                 for word in captionWords:
                     if word[0] == "#":
-                        n += 1
                         hashtagList.append(word)
-                hashtags = " ".join(hashtagList)
-                hashtagCount = str(n)
+                
 
 
 
             ####### PULL HASHTAGS + COUNT FROM COMMENTS
 
 
-            elif int(comments) > 0:
+            if int(comments) > 0:
+                
                 commentsInfo_url = "https://graph.facebook.com/v14.0/{}/comments".format(media_id)
                 commentsInfo_payload = {
-                    "access_token": long_lived_user_token,
-                    "fields": "user,text,timestamp,like_count"
+                "access_token": long_lived_user_token,
+                "fields": "username,text,timestamp,like_count"
                 }
 
                 commentsInfo = requests.get(commentsInfo_url, commentsInfo_payload)
                 commentsList = json.loads(commentsInfo.text)
-                print(commentsList)
 
-                for comment in commentsList['data']:
-                    if "#" in comment['text']:
-                        if comment['username'] == 'totalnerd_':
-                            hashtags = comment['text']
-                            x = hashtags.split()
-                            n = 0
-                            for word in x:
-                                if word[0] == "#":
-                                    n += 1
-                            hashtagCount = str(n)
+                try:
+                    while hashtagCount < 30:
+                        for comment in commentsList['data']:
+                            if "#" in comment['text']:
+                                if comment['username'] == igUsername:
+                                    commentWords = comment['text'].split()
+                                    for word in commentWords:
+                                        if word[0] == "#":
+                                            hashtagList.append(word)
+                                else:
+                                    pass
+                            else:
+                                pass
+                        if 'paging' in commentsList:
+                            nextCommentsPage = requests.get(commentsList['paging']['next'])
+                            commentsList = json.loads(nextCommentsPage.text)
+                        else:
+                            break        
+                except:
+                    print("---ERROR---")
 
-                    else:
-                        pass
 
 
+            formattedHashtagsList = hashtagListFormat(hashtagList)
+            
+            hashtagCount = len(formattedHashtagsList)
+            hashtags = " ".join(formattedHashtagsList)
 
 
 
@@ -260,7 +332,7 @@ def pullData():
                         reach = dataPoint['values'][0]["value"]
                     elif dataPoint['name'] == "carousel_album_saved":
                         saves = dataPoint['values'][0]["value"]
-                newRow = [timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews,"", "", hashtags, hashtagCount]
+                newRow = [media_id, timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews,"", "", hashtags, str(hashtagCount)]
                 writerImages.writerow(newRow)
                 #csv.append() -- csvImageCells = (timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews)
 
@@ -292,7 +364,7 @@ def pullData():
                     elif dataPoint['name'] == "saved":
                         saves = dataPoint['values'][0]["value"]
 
-                newRow = [timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews, "", "", hashtags, hashtagCount]
+                newRow = [media_id, timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews, "", "", hashtags, str(hashtagCount)]
                 writerImages.writerow(newRow)
 
 
@@ -321,7 +393,7 @@ def pullData():
                         elif dataPoint['name'] == "reach":
                             reach = dataPoint['values'][0]["value"]
 
-                    newRow = [timestamp,thumbnail,permalink,caption,type,reach,"n/a","n/a",likes,comments,saves,"n/a",hashtags, hashtagCount]
+                    newRow = [media_id, timestamp,thumbnail,permalink,caption,type,reach,"n/a","n/a",likes,comments,saves,"n/a",hashtags, str(hashtagCount)]
                     writerReels.writerow(newRow)
 
 
@@ -353,7 +425,7 @@ def pullData():
                             plays = dataPoint['values'][0]["value"]
 
 
-                    newRow = [timestamp,thumbnail,permalink,caption,type,reach,plays,engagement,likes,comments,saves,"n/a",hashtags, hashtagCount]
+                    newRow = [media_id, timestamp,thumbnail,permalink,caption,type,reach,plays,engagement,likes,comments,saves,"n/a",hashtags, str(hashtagCount)]
                     writerReels.writerow(newRow)
 
 
@@ -384,7 +456,7 @@ def pullData():
                             shares = dataPoint['values'][0]["value"]
                         elif dataPoint['name'] == "total_interactions":
                             total_interactions = dataPoint['values'][0]["value"]
-                    newRow = [timestamp,thumbnail,permalink,caption,type,reach,plays,total_interactions,likes,comments,saves,shares, hashtags, hashtagCount]
+                    newRow = [media_id, timestamp,thumbnail,permalink,caption,type,reach,plays,total_interactions,likes,comments,saves,shares, hashtags, str(hashtagCount)]
                     writerReels.writerow(newRow)
 
             else:
@@ -399,7 +471,7 @@ def pullData():
     reelsCSV.close()
 
     errorsCSV.close()
-    
+    subprocess.call(["open", exportFolderPath])
 
 
 
