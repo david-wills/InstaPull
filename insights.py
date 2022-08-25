@@ -135,6 +135,7 @@ def pullData():
     for ids in id_results['data']:
         media_id = ids['id']
         print("\nNew ID")
+
         print(media_id)
         print("\n")
 
@@ -159,7 +160,7 @@ def pullData():
                 caption = post['caption']
             likes = post['like_count']
             comments = post['comments_count']
-
+            print(comments)
 
             #HASHTAGS
 
@@ -169,9 +170,6 @@ def pullData():
             hashtagList = []
 
 
-
-            
-            print(comments + "comments")
 
 
 
@@ -427,6 +425,19 @@ def pullData():
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+        
+        
     
 
         
