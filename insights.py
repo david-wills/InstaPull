@@ -20,17 +20,6 @@ current_datetime = now.strftime("%m-%d-%Y %H.%M.%S")
 desktop = os.path.join(os.path.expanduser("~"), "Desktop")
 downloads = os.path.join(os.path.expanduser("~"), "Downloads")
 
-exportFolderPath = os.path.join(downloads, "{} Export".format(current_datetime))
-errorFolderPath = os.path.join(downloads, "{} Export/ErrorLog".format(current_datetime))
-
-imagesFilePath = os.path.join(downloads, "{} Export/images.csv".format(current_datetime))
-reelsFilePath = os.path.join(downloads, "{} Export/reels.csv".format(current_datetime))
-errorsFilePath = os.path.join(downloads, "{} Export/ErrorLog/errors.csv".format(current_datetime))
-
-if not os.path.isdir(exportFolderPath):
-    os.makedirs(exportFolderPath)
-if not os.path.isdir(errorFolderPath):
-    os.makedirs(errorFolderPath)
 
 
 """
@@ -51,7 +40,7 @@ ig_user_id = "17841400068127870"
 
 
 
-limit = "50"
+limit = "10"
 
 
 
@@ -95,11 +84,18 @@ def hashtagListFormat(hashtagList):
 
 
 
-
 def pullData():
     
-    imageCSV_url = imagesFilePath
-    reelsCSV_url = reelsFilePath
+
+    exportFolderPath = os.path.join(downloads, "{} Export".format(current_datetime))
+    errorFolderPath = os.path.join(downloads, "{} Export/ErrorLog".format(current_datetime))
+
+    imageCSV_url = os.path.join(downloads, "{} Export/images.csv".format(current_datetime))
+    reelsCSV_url = os.path.join(downloads, "{} Export/reels.csv".format(current_datetime))
+
+    if not os.path.isdir(exportFolderPath):
+        os.makedirs(exportFolderPath)
+
 
     imageCSV_header = ["Media ID", "Time Posted","Image URL","Instagram Post ","Caption","Media Type","Engagement","Followers","Impressions","Reach","Likes","Comments","Saves","Video Views", "LinkIn.bio", "Revenue", "Hashtags", "Hashtag Count"]
     reelsCSV_header = ["Media ID", "Time Posted","Image URL","Instagram Post","Caption","Media Type","Reach", "Plays", "Total Interactions", "Likes","Comments","Saves","Shares", "Hashtags", "Hashtag Count"]
@@ -113,15 +109,14 @@ def pullData():
     writerImages.writerow(imageCSV_header)
     writerReels.writerow(reelsCSV_header)
 
+    errorsCSV_url = os.path.join(downloads, "{} Export/ErrorLog/errors.csv".format(current_datetime))
+    if not os.path.isdir(errorFolderPath):
+        os.makedirs(errorFolderPath)
 
-
-    errorsCSV_url = errorsFilePath
     errorsCSV = open(errorsCSV_url, 'w', encoding='utf-8')
     writerErrorsCSV = csv.writer(errorsCSV)
     errorsCSV_header = ["Message ID", "Info"]
     writerErrorsCSV.writerow(errorsCSV_header)
-
-
 
 
 
@@ -140,7 +135,6 @@ def pullData():
     for ids in id_results['data']:
         media_id = ids['id']
         print("\nNew ID")
-
         print(media_id)
         print("\n")
 
@@ -165,7 +159,7 @@ def pullData():
                 caption = post['caption']
             likes = post['like_count']
             comments = post['comments_count']
-            print(comments)
+
 
             #HASHTAGS
 
@@ -175,6 +169,9 @@ def pullData():
             hashtagList = []
 
 
+
+            
+            print(comments + "comments")
 
 
 
@@ -274,40 +271,11 @@ def pullData():
             insights_url = "https://graph.facebook.com/{}/insights".format(media_id)
             
             
-            """insights_payload = {
-                "period": "day",
-                "metric": metrics,
-                "access_token": long_lived_user_token
-            }
-            
-            insightsInfo = requests.get(insights_url, insights_payload)
-            insights = json.loads(insightsInfo.text)
-            print(insights)
-            """
-
-
-
-
-
-
-
-
-            """ OPEN CSV using WITH command
-            with open(imageCSV_url, 'w', encoding='UTF8', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(imageCSV_header)
-            
-            with open(reelsCSV_url, 'w', encoding='UTF8', newline='') as g:
-                writer = csv.writer(g)
-                writer.writerow(reelsCSV_header)
-            """
-        
-            
-
 
             ######## CAROUSEL FEED POSTS
 
             if type == "CAROUSEL_ALBUM": 
+                thumbnail = permalink + "media/?size=l"
                 metrics = "carousel_album_engagement,carousel_album_impressions,carousel_album_reach,carousel_album_saved"
 
                 insights_payload = {
@@ -316,12 +284,8 @@ def pullData():
                     "access_token": long_lived_user_token
                 }
 
-
                 insightsInfo = requests.get(insights_url, insights_payload)
                 insights = json.loads(insightsInfo.text)
-
-                print(insights)
-
                 
                 for dataPoint in insights['data']:
                     if dataPoint['name'] == "carousel_album_engagement":
@@ -332,10 +296,9 @@ def pullData():
                         reach = dataPoint['values'][0]["value"]
                     elif dataPoint['name'] == "carousel_album_saved":
                         saves = dataPoint['values'][0]["value"]
+
                 newRow = [media_id, timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews,"", "", hashtags, str(hashtagCount)]
                 writerImages.writerow(newRow)
-                #csv.append() -- csvImageCells = (timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews)
-
 
 
 
@@ -343,7 +306,7 @@ def pullData():
 
             elif type == "IMAGE":
                 metrics = "engagement,impressions,reach,saved"
-
+                thumbnail = permalink + "media/?size=l"
 
                 insights_payload = {
                     "period": "day",
@@ -353,7 +316,7 @@ def pullData():
 
                 insightsInfo = requests.get(insights_url, insights_payload)
                 insights = json.loads(insightsInfo.text)
-                print(insights)
+
                 for dataPoint in insights['data']:
                     if dataPoint['name'] == "engagement":
                         engagement = dataPoint['values'][0]["value"]
@@ -379,13 +342,9 @@ def pullData():
                         "metric": metrics,
                         "access_token": long_lived_user_token
                     }
-
         
                     insightsInfo = requests.get(insights_url, insights_payload)
                     insights = json.loads(insightsInfo.text)
-
-                    print(insights)
-
 
                     for dataPoint in insights['data']:
                         if dataPoint['name'] == "saved":
@@ -412,8 +371,6 @@ def pullData():
                     insightsInfo = requests.get(insights_url, insights_payload)
                     insights = json.loads(insightsInfo.text)
 
-                    print(insights)
-
                     for dataPoint in insights['data']:
                         if dataPoint['name'] == "saved":
                             saves = dataPoint['values'][0]["value"]
@@ -423,7 +380,6 @@ def pullData():
                             engagement = dataPoint['values'][0]["value"]
                         elif dataPoint['name'] == "video_views":
                             plays = dataPoint['values'][0]["value"]
-
 
                     newRow = [media_id, timestamp,thumbnail,permalink,caption,type,reach,plays,engagement,likes,comments,saves,"n/a",hashtags, str(hashtagCount)]
                     writerReels.writerow(newRow)
@@ -442,8 +398,6 @@ def pullData():
                     insightsInfo = requests.get(insights_url, insights_payload)
                     insights = json.loads(insightsInfo.text)
 
-                    print(insights)
-
 
                     for dataPoint in insights['data']:
                         if dataPoint['name'] == "plays":
@@ -459,8 +413,6 @@ def pullData():
                     newRow = [media_id, timestamp,thumbnail,permalink,caption,type,reach,plays,total_interactions,likes,comments,saves,shares, hashtags, str(hashtagCount)]
                     writerReels.writerow(newRow)
 
-            else:
-                pass ##note that I need to add something for stories or else it might get screwed up
         except:
             errorRow = [media_id, post]
             writerErrorsCSV.writerow(errorRow)
@@ -475,147 +427,27 @@ def pullData():
 
 
 
-        
-
-
-
-    """
-        print("\nJSON PARSING\n")
-
-
-        #####IMAGE POSTS########
-        for dataPoint in insights['data']:
-            if dataPoint['name'] == "engagement":
-                engagement = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "impressions":
-                impressions = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "reach":
-                reach = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "saved":
-                saves = dataPoint['values'][0]["value"]
-        
-
-        #####VIDEO POSTS########
-        for dataPoint in insights['data']:
-            if dataPoint['name'] == "plays":
-                plays = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "reach":
-                reach = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "saved":
-                saves = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "shares":
-                shares = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "total_interactions":
-                totalInteractions = dataPoint['values'][0]["value"]
-
-
-        #####CAROUSEL POSTS#####
-        for dataPoint in insights['data']:
-            if dataPoint['name'] == "carousel_album_engagement":
-                carouselEngagement = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "carousel_album_impressions":
-                carouselImpressions = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "carousel_album_reach":
-                carouselReach = dataPoint['values'][0]["value"]
-            elif dataPoint['name'] == "carousel_album_saved":
-                carouselSaves = dataPoint['values'][0]["value"]
-            else:
-                pass
-
-        """
-
-
-
-
-#    csvImageCells = (timestamp,thumbnail,permalink,caption,type,engagement,followers,impressions,reach,likes,comments,saves,videoViews)
-#    csvReelCells = (timestamp,thumbnail,permalink,caption,type,total_interactions,followers,plays,reach,likes,comments,saves,shares)
-
-
-
-
-
-
-        
-    """ This writes individual to JSON file (doesn't add them all)
-        jsonFile = "/Users/davidwills/Dropbox/_New File Structure/Files/1) Coding/1) Projects/Python/Instagram Graph API/insights.json"
-        with open(jsonFile, "w") as outfile:
-            json.dump(insights, outfile, indent=2)
-        """
-
-        
-        
     
-
-
-
-
-
-
-
-
-
-    """
-        print("\n")
-        print(json.loads(postInfo.text))
-        print("\n")
-
-        
-
-
-        #full_insights_url = "https://graph.facebook.com/{}/insights?metric=comments&period=day&access_token=EAAHHfZCdfvGcBALle96LVO0zPfE0qwIl8Je9xnLHzd30wMI7OgO5pD57y409dWbfecP5tZBYNy2DwGU5xHQB7bpey2Mv9c8OMlJOOQztTFKZA1r5jYEYJBYU0PIz72KIBVkTTarCJ8fGfYGwSKrHAaVY4nlZBqQ4xayvpXHtGAZDZD"
-        
-        insights = requests.get(insights_url, insights_payload)
-        if "error" in json.loads(insights.text):
-
-            pass
-        else:
-            print(json.loads(insights.text))
-    """
-        
-
 
         
 pullData()
 
 
-"""
-print("\nTestinig\n")
-test = requests.get("https://graph.facebook.com/17851565306798151/insights?metric=likes&period=day&access_token=EAAHHfZCdfvGcBALle96LVO0zPfE0qwIl8Je9xnLHzd30wMI7OgO5pD57y409dWbfecP5tZBYNy2DwGU5xHQB7bpey2Mv9c8OMlJOOQztTFKZA1r5jYEYJBYU0PIz72KIBVkTTarCJ8fGfYGwSKrHAaVY4nlZBqQ4xayvpXHtGAZDZD")
-print(test)
-test_json = json.loads(test.text)
-print(test_json)
 
-"""
-
-"""
-    post_url = "https://graph.facebook.com/v14.0/{}/insights".format(media_id)
-    payload = {
-        "image_url": image_url,
-        "caption": "This is a caption",
-        "access_token": config.instsagram_access_token
-    }
-
-    r = requests.post(post_url, data = img_payload)
-    print(r.text)
-
-    
-    result = json.loads(r.text)
-    if 'id' in result:
-
-
+        
+""" This writes individual to JSON file (doesn't add them all)
+    jsonFile = "/Users/davidwills/Dropbox/_New File Structure/Files/1) Coding/1) Projects/Python/Instagram Graph API/insights.json"
+    with open(jsonFile, "w") as outfile:
+        json.dump(insights, outfile, indent=2)
 """
 
 
+""" OPEN CSV using WITH command
+with open(imageCSV_url, 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(imageCSV_header)
+
+with open(reelsCSV_url, 'w', encoding='UTF8', newline='') as g:
+    writer = csv.writer(g)
+    writer.writerow(reelsCSV_header)
 """
-                creation_id = result['id']
-
-        second_post_url = "https://graph.facebook.com/v14.0/{}}/media_publish".format(config.ig_user_id)
-        second_post_payload = {
-            "creation_id": creation_id,
-            "access_token": config.instagram_access_token
-        }
-        p = requests.post(second_post_url, data = second_post_payload)
-        print(p)
-"""
-
-
