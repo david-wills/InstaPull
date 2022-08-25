@@ -1,8 +1,0 @@
-#for Total Nerd
-long_lived_user_token: "EAAHHfZCdfvGcBALle96LVO0zPfE0qwIl8Je9xnLHzd30wMI7OgO5pD57y409dWbfecP5tZBYNy2DwGU5xHQB7bpey2Mv9c8OMlJOOQztTFKZA1r5jYEYJBYU0PIz72KIBVkTTarCJ8fGfYGwSKrHAaVY4nlZBqQ4xayvpXHtGAZDZD"
-ig_user_id = "17841400068127870"
-fb_user_id = "763663430350503"
-app_secret = "3b4e885dde971215e9e6315fe84e4e91"
-app_id = "500827401731175"
-
-

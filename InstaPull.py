@@ -1,3 +1,4 @@
+from email import message
 import json
 from operator import contains
 import requests
@@ -11,6 +12,98 @@ from datetime import date
 import subprocess
 import config
 from configparser import ConfigParser
+from tkinter import *
+import tkinter.ttk as ttk
+import tkinter as tk
+from tkinter import messagebox
+import sys
+from tkinter.messagebox import showinfo
+from os.path import exists
+from time import sleep
+
+
+
+#RUN NEW CONFIG
+def newConfig():
+    
+    userToken = tk.StringVar()
+    username = tk.StringVar()
+    igUserID = tk.StringVar()
+    configName = tk.StringVar()
+
+
+
+
+    #THE  NEW WINDOW
+    configWindow = tk.Tk()
+    configWindow.geometry("500x500")
+    configWindow.title("New Config")
+
+    queryUserToken = tk.Label(configWindow, text = "Insert your User Access token: ")
+    queryUserToken.grid(row = 1, column = 0)
+    entryUsertoken = ttk.Entry(configWindow, textvariable = userToken)
+    entryUsertoken.grid(row = 1, column = 1)
+
+    queryUsername = tk.Label(configWindow, text = "Insert your Instagram handle (without @): ")
+    queryUsername.grid(row = 2, column = 0)
+    entryUsername = ttk.Entry(configWindow, textvariable = username)
+    entryUsername.grid(row = 2, column = 1)
+
+    queryigUserID = tk.Label(configWindow, text = "Insert your Instagram User ID:  ")
+    queryigUserID.grid(row = 3, column = 0)
+    entryigUserID = ttk.Entry(configWindow, textvariable = igUserID)
+    entryigUserID.grid(row = 3, column = 1)
+
+    queryconfigName = tk.Label(configWindow, text = "Enter the profile name: ")
+    queryconfigName.grid(row = 4, column = 0)
+    entryconfigName = ttk.Entry(configWindow, textvariable = configName)
+    entryconfigName.grid(row = 4, column = 1)
+
+    ##### SAVE BUTTON
+    buttonSave = tk.Button(configWindow, text = 'Save', command = lambda : save_config())
+    buttonSave.grid(row=5, columnspan=2)
+
+
+
+    def save_config():
+        resultUserToken = entryUsertoken.get()
+        resultUsername = entryUsername.get()
+        resultUserID = entryigUserID.get()
+        resultConfigName = entryconfigName.get()
+
+        onfig = ConfigParser()
+        config.read(config_file)
+
+        config.add_section(resultConfigName)
+        config.set(resultConfigName, "User Token", resultUserToken)
+        config.set(resultConfigName, "Username", resultUsername)
+        config.set(resultConfigName, "Instagram User ID", resultUserID)
+
+        with open(config_file, "w") as confile:
+            config.write(confile)
+        config.read(config_file)
+        messagebox.showinfo( "Config Saved", "Please restart the computer to see the new config.")
+
+        configurations = config.sections()
+        configWindow.destroy()
+
+
+
+
+if not os.path.isdir("Configs"):
+        os.makedirs("Configs")
+
+if exists("Configs/config.ini") == True:
+    pass
+else:
+    with open("Configs/config.ini","w") as config:
+        pass
+    newConfig()
+    sleep(10)
+    
+
+
+
 
 today = date.today()
 now = datetime.now()
@@ -21,43 +114,37 @@ desktop = os.path.join(os.path.expanduser("~"), "Desktop")
 downloads = os.path.join(os.path.expanduser("~"), "Downloads")
 
 
+##### THE TOP LEVEL WINDOW
+root = tk.Tk()
+root.geometry("500x500")
+greeting = ttk.Label(text = "Instagram Ddata Pull")
+root.title("InstaPull")
 
-"""
+
+
+
+##### CONFIG SETTINGS + DROPDOWN
+
 global config_file
+global configurations
+
 config_file = "Configs/config.ini"
 config = ConfigParser()
 config.read(config_file)
 configurations = config.sections()
-"""
+print(configurations)
 
 
+configuration = StringVar()
+configuration.set("Select the Page")
 
-##### CONFIG PARAMETERS
-long_lived_user_token = "EAAHHfZCdfvGcBAN7mOuv5PRgKsb3gPzcoCDcyTY52XCBop49wodzKA2t7RHs3ftt0BMQUqoOZCePDTpEtTZCWx16qOBZCVgOdLf9tL9mZBjV1tlB0xnYzEVc3jKNWCnDBkDVDaaqVrW8R1wPZAKjbRafRcMIcAQW5JgSB9FtgWdQZDZD"
-igUsername = "totalnerd_"
-ig_user_id = "17841400068127870"
-
-
-
-
-limit = "10"
-
-
-
-
-long_lived_tn_page_access_token = "EAAHHfZCdfvGcBAPZAfgqui1JJAgjH7y1Aq74ZA2fGGXtZAKNO5YQpAqUOflYstc5ZBW64LzQjZAU8o3X1OzAmZBMtPMbgT9VlviIdZAaBFf0CSFyBDdyvg0z0yKrvP0HEYj5xT4lsqbhpzN2MWDIHtmpUDqOEGFf0zZCfZAUkIduR1Tz3AaBX05pN4"
-long_lived_wh_page_access_token = "EAAHHfZCdfvGcBAIiOpbe8K6yYNN7JZBxsLZAfkjrvpnPATdOePeojwjEwVCZA69BB9enwFRF3cuP4jtMum5VXNDIwZCK1PsLzhF29rG46zDqV7P83plYZCQtMhtCOqgnOUPevWr3zaZB6rfUv8nvZBL1gtHngEVogpPNkWpn1ih5yClPPQVRnJvC"
-long_lived_gs_page_access_token = "EAAHHfZCdfvGcBAFgywVBqRC18JlcdnHLCzxYLh2FT8o4xChTUxGSd8155hoXzwsOf6KTWN4GAOS86s8UQSZAuASzZCaYLSeyFY9ZCEZAEndWBvFTSXjVmTAJQ371nbNPJkc3iZCaFqcvdP1dTUbfzeaBQTZBUjCNaTej53QQL5P2qj2S8nLM2dT"
-
-
-gs_facebook_id = "1011190218967434"
-wh_facebook_id = "642850749204637"
-tn_facebook_id = "763663430350503"
-
-gs_ig_id = "17841405694374055"
-wh_ig_id = "17841405465779649"
-tn_ig_id = "17841400068127870"
-
+if configurations != []:
+    dropdownConfig = tk.OptionMenu(
+        root,
+        configuration,
+        *configurations
+)
+    dropdownConfig.grid(row=0, columnspan=2)
 
 
 
@@ -85,7 +172,16 @@ def hashtagListFormat(hashtagList):
 
 
 def pullData():
-    
+    try:
+        limit = entryLimit.get()
+    except:
+        limit = 10
+
+    currentConfig = configuration.get()
+    currentUserToken = config[currentConfig]["User Token"]
+    currentUsername = config[currentConfig]["Username"]
+    currentUserID = config[currentConfig]["Instagram User ID"]
+
 
     exportFolderPath = os.path.join(downloads, "{} Export".format(current_datetime))
     errorFolderPath = os.path.join(downloads, "{} Export/ErrorLog".format(current_datetime))
@@ -93,8 +189,12 @@ def pullData():
     imageCSV_url = os.path.join(downloads, "{} Export/images.csv".format(current_datetime))
     reelsCSV_url = os.path.join(downloads, "{} Export/reels.csv".format(current_datetime))
 
+
+
     if not os.path.isdir(exportFolderPath):
         os.makedirs(exportFolderPath)
+
+    
 
 
     imageCSV_header = ["Media ID", "Time Posted","Image URL","Instagram Post ","Caption","Media Type","Engagement","Followers","Impressions","Reach","Likes","Comments","Saves","Video Views", "LinkIn.bio", "Revenue", "Hashtags", "Hashtag Count"]
@@ -118,12 +218,10 @@ def pullData():
     errorsCSV_header = ["Message ID", "Info"]
     writerErrorsCSV.writerow(errorsCSV_header)
 
-
-
     
-    id_url = "https://graph.facebook.com/v14.0/{}/media".format(ig_user_id)
+    id_url = "https://graph.facebook.com/v14.0/{}/media".format(currentUserID)
     id_payload = {
-        "access_token": long_lived_user_token,
+        "access_token": currentUserToken,
         "limit": limit
         }
 
@@ -134,15 +232,13 @@ def pullData():
 
     for ids in id_results['data']:
         media_id = ids['id']
-        print("\nNew ID")
-
         print(media_id)
         print("\n")
 
         postInfo_url = "https://graph.facebook.com/v14.0/{}".format(media_id)
         postInfo_payload = {
             "fields": "caption,comments_count,id,like_count,media_type,permalink,media_product_type,media_url,shortcode,thumbnail_url,timestamp",
-            "access_token": long_lived_user_token
+            "access_token": currentUserToken
         }
 
         postInfo = requests.get(postInfo_url, postInfo_payload)
@@ -193,7 +289,7 @@ def pullData():
                 
                 commentsInfo_url = "https://graph.facebook.com/v14.0/{}/comments".format(media_id)
                 commentsInfo_payload = {
-                "access_token": long_lived_user_token,
+                "access_token": currentUserToken,
                 "fields": "username,text,timestamp,like_count"
                 }
 
@@ -204,7 +300,7 @@ def pullData():
                     while hashtagCount < 30:
                         for comment in commentsList['data']:
                             if "#" in comment['text']:
-                                if comment['username'] == igUsername:
+                                if comment['username'] == currentUsername:
                                     commentWords = comment['text'].split()
                                     for word in commentWords:
                                         if word[0] == "#":
@@ -279,7 +375,7 @@ def pullData():
                 insights_payload = {
                     "period": "day",
                     "metric": metrics,
-                    "access_token": long_lived_user_token
+                    "access_token": currentUserToken
                 }
 
                 insightsInfo = requests.get(insights_url, insights_payload)
@@ -309,7 +405,7 @@ def pullData():
                 insights_payload = {
                     "period": "day",
                     "metric": metrics,
-                    "access_token": long_lived_user_token
+                    "access_token": currentUserToken
                 }
 
                 insightsInfo = requests.get(insights_url, insights_payload)
@@ -338,7 +434,7 @@ def pullData():
                     insights_payload = {
                         "period": "day",
                         "metric": metrics,
-                        "access_token": long_lived_user_token
+                        "access_token": currentUserToken
                     }
         
                     insightsInfo = requests.get(insights_url, insights_payload)
@@ -362,7 +458,7 @@ def pullData():
                     insights_payload = {
                         "period": "day",
                         "metric": metrics,
-                        "access_token": long_lived_user_token
+                        "access_token": currentUserToken
                     }
 
         
@@ -389,7 +485,7 @@ def pullData():
                     insights_payload = {
                         "period": "day",
                         "metric": metrics,
-                        "access_token": long_lived_user_token
+                        "access_token": currentUserToken
                     }
 
             
@@ -416,32 +512,179 @@ def pullData():
             writerErrorsCSV.writerow(errorRow)
 
 
-
     imageCSV.close()
     reelsCSV.close()
 
     errorsCSV.close()
     subprocess.call(["open", exportFolderPath])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        
+    
     
 
-        
-pullData()
+
+
+
+
+buttonNewConfig = tk.Button(
+    root,
+    text = "New Config",
+    width = 25,
+    height = 2,
+    bg = "blue",
+    fg = "black",
+    command = newConfig
+    )
+buttonNewConfig.grid(row = 1, columnspan=2)
+
+
+
+limitVar = tk.StringVar()
+
+queryLimit = tk.Label(root, text = "How many posts do you want to pull? ")
+queryLimit.grid(row = 2, column = 0)
+entryLimit = ttk.Entry(root, textvariable = limitVar)
+entryLimit.grid(row = 2, column = 1)
+
+
+
+buttonPullData = tk.Button(
+    root,
+    text = "Pull Data",
+    width = 50,
+    height = 5,
+    bg = "blue",
+    fg = "black",
+    command = pullData
+    )
+buttonPullData.grid(row = 3, columnspan=2)
+
+
+root.mainloop()
+
+
+
+
+
+
+""" Progress Bar (in progress)
+class Family(object):
+    def parent(self):
+        self.test = 0
+        self.child()
+    
+    def child(self):
+        self.test += 1
+        print(self.test)
+
+
+def launchProgressBar():
+    
+    try:
+        limit = entryLimit.get()
+    except:
+        limit = 10
+
+
+    progressBar = tk.Toplevel(root)
+    progressBar.geometry("300x120")
+    progressBar.title("Progress")
+
+    progressCount = 0
+
+    def update_progress_label():
+        return f"Current Progress: {str(progressCount)} / {str(limit)}"
+
+    def progress():
+        if pb['value'] < 100:
+            pb['value'] = int(progressCount)/int(limit)
+            value_label['text'] = update_progress_label()
+        else:
+            showinfo(message='The process is complete!')
+
+    def stop():
+        pb.stop()
+        value_label['text'] = update_progress_label()
+
+
+    pb = ttk.Progressbar(
+        progressBar,
+        orient='horizontal',
+        mode='determinate',
+        length=280
+    )
+
+    pbLabel = tk.Label(progressBar, text="Hello")
+    pbLabel.grid(row=0)
+    pb.grid(column=0, row=1, columnspan=2, padx=10, pady=20)
+
+    value_label = ttk.Label(progressBar, text=update_progress_label())
+    value_label.grid(column=0, row=12, columnspan=2)
+    
+    
+
+
+
+
+
+"""
+
+
+""" Terminal Readout (in progress)
+class Redirect():
+    def __init__(self, widget):
+        self.widget = widget
+
+    def write(self, text):
+        self.widget.insert('end', text)
+
+    def flush(self):
+        pass
+
+
+def test():
+    print("Hello world")
+    p = subprocess.run("ping -c 4 stackoverflow.com", shell=True, stdout=subprocess.PIPE)
+    print(p.stdout.decode())
+
+
+text = tk.Text(root)
+text.grid(row=6, columnspan=5)
+
+button = tk.Button(root, text="TEST", command=test)
+button.grid(row=5, columnspan=2)
+
+old_stdout = sys.stdout
+sys.stdout = Redirect(text)
+
+"""
+
+
+
+""" Terminal Readout2 (in progress)
+if __name__ == '__main__':        
+    def printLog():
+        print(media_id)
+        print(permalink)
+    
+    console = tk.Text(root)
+    console.grid(row=5, columnspan=3)
+
+    pl = PrintLogger(console)
+
+if __name__ == '__main__':
+    def do_something():
+        print('I did something')
+        root.after(1000, do_something)
+    
+    t = tk.Text(root)
+    t.grid(row=5)
+
+    pl = PrintLogger(t)
+
+    sys.stdout = pl
+
+    root.after(1000, do_something)
+"""
 
 
 
